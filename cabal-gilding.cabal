@@ -1,7 +1,7 @@
 cabal-version: 2.2
 author: Taylor Fausak
 category: Development
-description: Gild formats package descriptions.
+description: Bespoke gilding which formats package descriptions.
 extra-doc-files:
   CHANGELOG.md
   README.md
@@ -9,13 +9,13 @@ extra-doc-files:
 license: MIT
 license-file: LICENSE.txt
 maintainer: Taylor Fausak
-name: cabal-gild
+name: cabal-gilding
 synopsis: Formats package descriptions.
 version: 1.0.2.0
 
 source-repository head
   type: git
-  location: https://github.com/tfausak/cabal-gild
+  location: https://github.com/recursion-ninja/cabal-gilding
 
 flag pedantic
   default: False
@@ -46,14 +46,14 @@ common library
 
 common executable
   import: library
-  build-depends: cabal-gild
+  build-depends: cabal-gilding
   ghc-options:
     -rtsopts
     -threaded
 
 library
   import: library
-  autogen-modules: Paths_cabal_gild
+  autogen-modules: Paths_cabal_gilding
   build-depends:
     Cabal-syntax ^>=3.8.1.0 || ^>=3.10.1.0,
     bytestring ^>=0.11.3.1 || ^>=0.12.0.2,
@@ -66,13 +66,14 @@ library
     text ^>=2.0.1 || ^>=2.1,
     transformers ^>=0.5.6.2 || ^>=0.6.1.0,
 
-  -- cabal-gild: discover source/library
+  -- cabal-gilding: discover source/library
   exposed-modules:
     CabalGild.Action.AttachComments
     CabalGild.Action.EvaluatePragmas
     CabalGild.Action.ExtractComments
     CabalGild.Action.FormatFields
     CabalGild.Action.GetCabalVersion
+    CabalGild.Action.ProcessMetadata
     CabalGild.Action.ReflowText
     CabalGild.Action.RemovePositions
     CabalGild.Action.Render
@@ -109,14 +110,14 @@ library
     CabalGild.Type.SomeParsecParser
 
   hs-source-dirs: source/library
-  other-modules: Paths_cabal_gild
+  other-modules: Paths_cabal_gilding
 
-executable cabal-gild
+executable cabal-gilding
   import: executable
   hs-source-dirs: source/executable
   main-is: Main.hs
 
-test-suite cabal-gild-test-suite
+test-suite cabal-gilding-test-suite
   import: executable
   build-depends:
     bytestring,

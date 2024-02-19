@@ -1,5 +1,10 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module CabalGild.Action.Render where
 
+import Data.Foldable
+import Data.Ord (comparing)
+import qualified CabalGild.Action.ProcessMetadata as Meta
 import qualified CabalGild.Extra.FieldLine as FieldLine
 import qualified CabalGild.Extra.Name as Name
 import qualified CabalGild.Extra.SectionArg as SectionArg
@@ -8,8 +13,11 @@ import qualified CabalGild.Type.Chunk as Chunk
 import qualified CabalGild.Type.Comment as Comment
 import qualified CabalGild.Type.Line as Line
 import qualified Data.ByteString as ByteString
+import qualified Data.ByteString.Char8 as BS8
+import qualified Data.Set as Set
 import qualified Distribution.Compat.Lens as Lens
 import qualified Distribution.Fields as Fields
+import qualified Distribution.Fields.Field as Fields
 
 -- | A wrapper around 'toByteString' to allow this to be composed with other
 -- actions.
@@ -43,10 +51,10 @@ field :: Int -> Fields.Field [Comment.Comment a] -> Block.Block
 field i f = case f of
   Fields.Field n fls -> case fls of
     [fl]
-      | null $ FieldLine.annotation fl ->
+      | null (FieldLine.annotation fl) && Fields.getName n `Set.member` Meta.metadataFieldNameSet ->
           comments i (Name.annotation n)
             <> ( Block.fromLine
-                   . Lens.over Line.chunkLens (mappend $ name n <> Chunk.colon)
+                   . Lens.over Line.chunkLens (mappend $ metadataFieldPadding n)
                    $ fieldLine i fl
                )
     _ ->
@@ -132,3 +140,15 @@ comment i =
     . Chunk.fromByteString
     . mappend Comment.delimiter
     . Comment.value
+
+
+metadataFieldPadding :: Fields.Name a -> Chunk.Chunk
+metadataFieldPadding fName =
+    let longest = maximumBy (comparing ByteString.length) Meta.metadataFieldNameSet
+        fullLen = ByteString.length longest
+        nameLen = ByteString.length $ Fields.getName fName
+        moreLen = case fullLen - nameLen of
+            0 -> 0
+            n -> n + 1
+        padding = BS8.replicate moreLen ' ' 
+    in  name fName <> Chunk.colon <> Chunk.fromByteString padding

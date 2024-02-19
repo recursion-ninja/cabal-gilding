@@ -6,6 +6,7 @@ import qualified CabalGild.Action.EvaluatePragmas as EvaluatePragmas
 import qualified CabalGild.Action.ExtractComments as ExtractComments
 import qualified CabalGild.Action.FormatFields as FormatFields
 import qualified CabalGild.Action.GetCabalVersion as GetCabalVersion
+import qualified CabalGild.Action.ProcessMetadata as ProcessMetadata
 import qualified CabalGild.Action.ReflowText as ReflowText
 import qualified CabalGild.Action.RemovePositions as RemovePositions
 import qualified CabalGild.Action.Render as Render
@@ -25,7 +26,7 @@ import qualified Data.ByteString.Char8 as Latin1
 import qualified Data.Maybe as Maybe
 import qualified Data.Version as Version
 import qualified Distribution.Fields as Fields
-import qualified Paths_cabal_gild as This
+import qualified Paths_cabal_gilding as This
 import qualified System.Console.GetOpt as GetOpt
 import qualified System.Environment as Environment
 import qualified System.Exit as Exit
@@ -92,6 +93,7 @@ mainWith name arguments = do
   output <-
     ( AttachComments.run
         Monad.>=> ReflowText.run csv
+        Monad.>=> ProcessMetadata.run csv
         Monad.>=> RemovePositions.run
         Monad.>=> EvaluatePragmas.run (Maybe.fromMaybe (Config.stdin config) $ Config.input config)
         Monad.>=> FormatFields.run csv
