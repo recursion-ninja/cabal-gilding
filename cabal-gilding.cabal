@@ -1,29 +1,51 @@
-cabal-version: 2.2
-author: Taylor Fausak
-category: Development
-description: Bespoke gilding which formats package descriptions.
+cabal-version:      2.2
+name:               cabal-gilding
+version:            1.1.0
+stability:          Stable
+build-type:         Simple
+author:             Alex Washburn <github@recursion.ninja>
+copyright:          (c) 2024 Alex Washburn
+license:            MIT
+license-file:       LICENSE.txt
+maintainer:         Alex Washburn <github@recursion.ninja>
+homepage:           https://github.com/recursion-ninja/cabal-gilding?tab=readme-ov-file#gild
+bug-reports:        https://github.com/recursion-ninja/cabal-gilding/issues
+synopsis:           Formats Cabal package descriptions.
+description:
+  Source formatter for Cabal package description files.
+  Applies a bespoke gilding to the package description file which appeases the aesthetic sensibilities of the Recursion Ninja.
+
+category:
+  Cabal
+  Development
+  Pretty Printer
+  Source Code Analysis
+
 extra-doc-files:
   CHANGELOG.md
   README.md
 
-license: MIT
-license-file: LICENSE.txt
-maintainer: Taylor Fausak
-name: cabal-gilding
-synopsis: Formats package descriptions.
-version: 1.0.2.0
-
 source-repository head
-  type: git
-  location: https://github.com/recursion-ninja/cabal-gilding
+  type:
+    git
+
+  location:
+    https://github.com/recursion-ninja/cabal-gilding
 
 flag pedantic
-  default: False
-  manual: True
+  default:
+    False
+
+  manual:
+    True
 
 common library
-  build-depends: base ^>=4.17.0.0 || ^>=4.18.0.0 || ^>=4.19.0.0
-  default-language: Haskell2010
+  build-depends:
+    base ^>=4.17.0.0 || ^>=4.18.0.0 || ^>=4.19.0.0
+
+  default-language:
+    Haskell2010
+
   ghc-options:
     -Weverything
     -Wno-all-missed-specialisations
@@ -39,21 +61,31 @@ common library
     -Wno-unsafe
 
   if impl(ghc >= 9.8)
-    ghc-options: -Wno-missing-role-annotations
+    ghc-options:
+      -Wno-missing-role-annotations
 
   if flag(pedantic)
-    ghc-options: -Werror
+    ghc-options:
+      -Werror
 
 common executable
-  import: library
-  build-depends: cabal-gilding
+  import:
+    library
+
+  build-depends:
+    cabal-gilding
+
   ghc-options:
     -rtsopts
     -threaded
 
 library
-  import: library
-  autogen-modules: Paths_cabal_gilding
+  import:
+    library
+
+  autogen-modules:
+    Paths_cabal_gilding
+
   build-depends:
     Cabal-syntax ^>=3.8.1.0 || ^>=3.10.1.0,
     bytestring ^>=0.11.3.1 || ^>=0.12.0.2,
@@ -109,16 +141,26 @@ library
     CabalGild.Type.Set
     CabalGild.Type.SomeParsecParser
 
-  hs-source-dirs: source/library
-  other-modules: Paths_cabal_gilding
+  hs-source-dirs:
+    source/library
+
+  other-modules:
+    Paths_cabal_gilding
 
 executable cabal-gilding
-  import: executable
-  hs-source-dirs: source/executable
-  main-is: Main.hs
+  import:
+    executable
+
+  hs-source-dirs:
+    source/executable
+
+  main-is:
+    Main.hs
 
 test-suite cabal-gilding-test-suite
-  import: executable
+  import:
+    executable
+
   build-depends:
     bytestring,
     containers,
@@ -127,6 +169,11 @@ test-suite cabal-gilding-test-suite
     hspec ^>=2.11.7,
     transformers,
 
-  hs-source-dirs: source/test-suite
-  main-is: Main.hs
-  type: exitcode-stdio-1.0
+  hs-source-dirs:
+    source/test-suite
+
+  main-is:
+    Main.hs
+
+  type:
+    exitcode-stdio-1.0
