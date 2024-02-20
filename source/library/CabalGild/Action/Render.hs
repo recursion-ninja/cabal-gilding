@@ -19,6 +19,9 @@ import qualified Distribution.Compat.Lens as Lens
 import qualified Distribution.Fields as Fields
 import qualified Distribution.Fields.Field as Fields
 
+data RenderingMode = Dynamic | StaticInlining
+  deriving (Eq)
+
 -- | A wrapper around 'toByteString' to allow this to be composed with other
 -- actions.
 run ::
@@ -37,26 +40,23 @@ toByteString fs cs =
    in Block.toByteString
         . Lens.set Block.lineBeforeLens False
         . Lens.set Block.lineAfterLens True
-        $ fields i fs <> comments i cs
+        $ fields Dynamic i fs <> comments i cs
+
 
 -- | Renders the given fields to a block at the given indentation level.
-fields :: Int -> [Fields.Field [Comment.Comment a]] -> Block.Block
-fields = foldMap . field
+fields :: RenderingMode -> Int -> [Fields.Field [Comment.Comment a]] -> Block.Block
+fields mode = foldMap . field mode
 
 -- | Renders the given field to a block at the given indentation level.
 --
 -- If a field only has one line and no comments, then it can be rendered all on
 -- one line.
-field :: Int -> Fields.Field [Comment.Comment a] -> Block.Block
-field i f = case f of
+field :: RenderingMode -> Int -> Fields.Field [Comment.Comment a] -> Block.Block
+field mode i f = case f of
   Fields.Field n fls -> case fls of
     [fl]
-      | null (FieldLine.annotation fl) && Fields.getName n `Set.member` Meta.metadataFieldNameSet ->
-          comments i (Name.annotation n)
-            <> ( Block.fromLine
-                   . Lens.over Line.chunkLens (mappend $ metadataFieldPadding n)
-                   $ fieldLine i fl
-               )
+      | null (FieldLine.annotation fl) && Fields.getName n `Set.member` Meta.metadataFieldNameSet -> renderFieldInline i n fl
+    _ | mode == StaticInlining -> foldMap (renderFieldInline i n) fls 
     _ ->
       Lens.set Block.lineAfterLens True $
         comments i (Name.annotation n)
@@ -66,17 +66,30 @@ field i f = case f of
                 Line.chunk = name n <> Chunk.colon
               }
           <> fieldLines (i + 1) fls
+  Fields.Section n _ _ | mode == Dynamic && Fields.getName n `Set.member` Meta.metadataFieldNameSetSpecial -> field StaticInlining i f
   Fields.Section n sas fs ->
-    Lens.set Block.lineBeforeLens True
-      . Lens.set Block.lineAfterLens True
-      $ comments i (Name.annotation n)
-        <> comments i (concatMap SectionArg.annotation sas)
-        <> Block.fromLine
-          Line.Line
-            { Line.indent = i,
-              Line.chunk = Lens.set Chunk.spaceAfterLens True (name n) <> sectionArgs sas
-            }
-        <> Lens.set Block.lineBeforeLens False (fields (i + 1) fs)
+    let blockSpacing = case mode of
+          Dynamic -> Block.lineBeforeLens
+          StaticInlining -> Block.lineAfterLens
+    in  Lens.set Block.lineBeforeLens True
+          . Lens.set Block.lineAfterLens True
+          $ comments i (Name.annotation n)
+            <> comments i (concatMap SectionArg.annotation sas)
+            <> Block.fromLine
+              Line.Line
+                { Line.indent = i,
+                  Line.chunk = Lens.set Chunk.spaceAfterLens True (name n) <> sectionArgs sas
+                }
+            <> Lens.set blockSpacing False (fields mode (i + 1) fs)
+
+renderFieldInline :: Int -> Fields.Name [Comment.Comment a] -> Fields.FieldLine a2 -> Block.Block
+renderFieldInline i n fl =
+    let fComments = comments i (Name.annotation n)
+        fContent = Block.fromLine
+                   . Lens.over Line.chunkLens (mappend $ metadataFieldPadding n)
+                   $ fieldLine i fl
+    in  fComments <> fContent
+
 
 -- | Renders the given name to a chunk.
 name :: Fields.Name a -> Chunk.Chunk

@@ -5,6 +5,7 @@ module CabalGild.Action.ProcessMetadata (
   reorderMetadataFields,
   metadataFieldNameSet,
   metadataFieldNameSetInline,
+  metadataFieldNameSetSpecial,
 ) where
 
 import Data.Ord (comparing)
@@ -63,7 +64,7 @@ reorderFields fs =
 
 metadataFieldNameOrdering :: [ Fields.FieldName ]
 metadataFieldNameOrdering =
-    metadataInline <> metadataBlocks
+    metadataInline <> metadataBlocks <> metadataSpecial
 
 
 metadataInline :: [ Fields.FieldName ]
@@ -92,9 +93,17 @@ metadataBlocks =
     , "data-files"
     , "extra-doc-files"
     , "extra-source-files"
-    , "source-repository"
+    ]
+
+
+metadataSpecial :: [ Fields.FieldName ]
+metadataSpecial =
+    [ "source-repository"
     , "flag"
     ]
+
+metadataFieldNameSetSpecial :: Set.Set Fields.FieldName
+metadataFieldNameSetSpecial = Set.fromList metadataSpecial
 
 
 metadataFieldNameSetInline :: Set.Set Fields.FieldName

@@ -26,18 +26,12 @@ extra-doc-files:
   README.md
 
 source-repository head
-  type:
-    git
-
-  location:
-    https://github.com/recursion-ninja/cabal-gilding
+  type:               git
+  location:           https://github.com/recursion-ninja/cabal-gilding
 
 flag pedantic
-  default:
-    False
-
-  manual:
-    True
+  default:            False
+  manual:             True
 
 common library
   build-depends:
